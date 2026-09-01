@@ -1,6 +1,6 @@
-LTA OJT TRACKER - VERSION 6 UPDATE
+LTA OJT TRACKER - VERSION 7 TOTAL-ROW ALIGNMENT UPDATE
 
-Replace the existing root files with index.html, app.bundle.js, sw.js, and template.pdf from this package. The PDF engine is now built into app.bundle.js; no vendor folder is required.
+Replace only app.bundle.js and sw.js in the repository root. This update raises the category-total numbers slightly so they are vertically centered and clear of the bottom grid line.
 
 GitHub Pages will update in a few minutes. Open the installed app while online once so it downloads the update. If the old version remains, close it, revisit the GitHub Pages URL in Safari, refresh, then reopen the home-screen app.
 

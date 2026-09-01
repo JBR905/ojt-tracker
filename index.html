@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f4f7a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="OJT Tracker">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>OJT Hours Tracker</title>
+  <style>
+    :root {
+      --bg:#f4f7fa; --card:#ffffff; --text:#17212b; --muted:#617181;
+      --border:#d6dee6; --accent:#1f4f7a; --accent2:#e8f0f7;
+      --danger:#a32929; --ok:#26734d;
+    }
+    * { box-sizing:border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
+    body { min-height:100vh; }
+    .wrap { max-width:920px; margin:0 auto; padding:16px 14px 36px; }
+    header { padding:8px 2px 14px; }
+    h1 { margin:0 0 4px; font-size:1.55rem; }
+    .sub { color:var(--muted); font-size:.93rem; }
+    .status { display:flex; align-items:center; gap:9px; background:var(--accent2);
+      border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:14px; }
+    .dot { width:10px; height:10px; border-radius:50%; background:var(--ok); flex:0 0 auto; }
+    .grid { display:grid; grid-template-columns:1.15fr .85fr; gap:14px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; }
+    .card h2 { margin:0 0 10px; font-size:1.05rem; }
+    label { display:block; font-weight:600; font-size:.9rem; margin:10px 0 5px; }
+    input, select, button { font:inherit; }
+    input, select {
+      width:100%; min-height:46px; padding:10px 11px; border:1px solid var(--border);
+      border-radius:10px; background:#fff; color:var(--text); font-size:16px;
+    }
+    button {
+      min-height:44px; border:1px solid var(--border); border-radius:10px;
+      padding:10px 12px; background:#fff; color:var(--text); font-weight:600;
+    }
+    button.primary { width:100%; margin-top:12px; background:var(--accent); color:#fff; border-color:var(--accent); }
+    button.danger { color:var(--danger); }
+    .stat { padding:14px; border:1px solid var(--border); border-radius:12px; background:#fff; margin-bottom:10px; }
+    .stat-label { color:var(--muted); font-size:.86rem; }
+    .stat-value { font-size:1.75rem; font-weight:700; margin-top:2px; }
+    .section { margin-top:14px; }
+    .row-head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+    .row-head h2 { margin:0; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .entry { display:flex; justify-content:space-between; gap:12px; align-items:center;
+      border-top:1px solid var(--border); padding:10px 0; }
+    .entry:first-child { border-top:0; }
+    .entry-title { font-weight:650; }
+    .entry-meta { color:var(--muted); font-size:.88rem; margin-top:2px; }
+    .entry-actions { display:flex; gap:6px; flex:0 0 auto; }
+    .tiny { min-height:38px; padding:7px 9px; font-size:.85rem; }
+    .empty { color:var(--muted); border:1px dashed var(--border); border-radius:10px; padding:14px; }
+    .scroll { overflow-x:auto; }
+    table { width:100%; min-width:760px; border-collapse:collapse; font-size:.86rem; }
+    th, td { border-bottom:1px solid var(--border); padding:8px 7px; text-align:right; }
+    th:first-child, td:first-child { text-align:left; }
+    tfoot td { font-weight:700; }
+    .note { color:var(--muted); font-size:.85rem; line-height:1.35; margin-top:10px; }
+    .msg { min-height:20px; color:var(--muted); font-size:.86rem; margin-top:7px; }
+    dialog { width:min(560px, calc(100% - 24px)); border:1px solid var(--border); border-radius:14px; padding:0; }
+    dialog::backdrop { background:rgba(0,0,0,.35); }
+    .modal { padding:16px; }
+    .modal h2 { margin-top:0; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+    @media (max-width:700px) {
+      .grid { grid-template-columns:1fr; }
+      .wrap { padding:12px 10px 28px; }
+      h1 { font-size:1.4rem; }
+      .stat-value { font-size:1.55rem; }
+    }
+    @media print {
+      header,.status,.entry-form-card,.stats-card,.recent-card,.backup-card,.week-controls,.note { display:none !important; }
+      body,.wrap,.card { background:#fff; border:0; padding:0; margin:0; }
+      .section { margin:0; }
+      table { min-width:0; font-size:10px; }
+      th,td { padding:5px 4px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>OJT Hours Tracker</h1>
+    <div class="sub">Offline-first daily OJT logging with weekly totals and backups.</div>
+  </header>
+
+  <div class="status">
+    <span class="dot"></span>
+    <div>
+      <strong id="netText">Ready</strong>
+      <div class="sub" id="saveStatus">Entries save automatically on this device.</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="card entry-form-card">
+      <h2>Add hours</h2>
+      <form id="entryForm">
+        <label for="date">Date</label>
+        <input id="date" type="date" required>
+
+        <label for="category">Category</label>
+        <select id="category" required>
+          <option value="">Choose category</option>
+          <option>Pre Clean Classroom</option>
+          <option>Pre Clean OJT</option>
+          <option>Passivation Classroom</option>
+          <option>Passivation OJT</option>
+          <option>Detailed Cleaning Classroom</option>
+          <option>Detailed Cleaning OJT</option>
+          <option>Sampling Classroom</option>
+          <option>Sampling OJT</option>
+          <option>Packaging Classroom</option>
+          <option>Packaging OJT</option>
+          <option>Documentation</option>
+          <option>Disassembly/Reassembly Classroom</option>
+          <option>Disassembly/Reassembly OJT</option>
+          <option>Hydrostatic Testing</option>
+          <option>Pneumatic Testing</option>
+          <option>Cryogenic Testing</option>
+        </select>
+
+        <label for="hours">Hours</label>
+        <input id="hours" type="number" inputmode="decimal" min="0.1" max="24" step="0.1" placeholder="Example: 2.5" required>
+        <button class="primary" type="submit">Add hours</button>
+        <div id="formMsg" class="msg" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="card stats-card">
+      <div class="stat"><div class="stat-label">Today</div><div class="stat-value" id="todayTotal">0.0 hrs</div></div>
+      <div class="stat"><div class="stat-label">This week</div><div class="stat-value" id="weekTotal">0.0 hrs</div></div>
+      <div class="stat"><div class="stat-label">All recorded hours</div><div class="stat-value" id="allTotal">0.0 hrs</div></div>
+    </section>
+  </div>
+
+  <section class="card section recent-card">
+    <div class="row-head">
+      <div><h2>Recent entries</h2><div class="sub">Edit or delete mistakes at any time.</div></div>
+    </div>
+    <div id="entries"></div>
+  </section>
+
+  <section class="card section">
+    <div class="row-head week-controls">
+      <div><h2>Weekly summary</h2><div class="sub" id="weekLabel"></div></div>
+      <div class="actions">
+        <button id="prevWeek" type="button">← Previous</button>
+        <button id="thisWeek" type="button">This week</button>
+        <button id="nextWeek" type="button">Next →</button>
+      </div>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Category</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th><th>Total</th>
+        </tr></thead>
+        <tbody id="summaryBody"></tbody>
+        <tfoot id="summaryFoot"></tfoot>
+      </table>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button id="printWeek" type="button">Print / Save Weekly Report</button>
+      <button id="exportCsv" type="button">Export Week CSV</button>
+    </div>
+  </section>
+
+  <section class="card section backup-card">
+    <div class="row-head">
+      <div><h2>Backup & restore</h2><div class="sub">Use this if you change phones or want an extra copy.</div></div>
+    </div>
+    <div class="actions">
+      <button id="exportBackup" type="button">Export Backup</button>
+      <button id="importBackup" type="button">Import Backup</button>
+      <button id="clearAll" class="danger" type="button">Clear All Data</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json,.json" hidden>
+    <div class="note">Your records stay local to this device. Other people can install the same app and will have their own separate data.</div>
+  </section>
+</div>
+
+<dialog id="editDialog">
+  <form method="dialog" class="modal" id="editForm">
+    <h2>Edit entry</h2>
+    <input id="editId" type="hidden">
+    <label for="editDate">Date</label><input id="editDate" type="date" required>
+    <label for="editCategory">Category</label>
+    <select id="editCategory" required></select>
+    <label for="editHours">Hours</label><input id="editHours" type="number" min="0.1" max="24" step="0.1" inputmode="decimal" required>
+    <div class="modal-actions">
+      <button value="cancel">Cancel</button>
+      <button class="primary" id="saveEdit" value="default">Save changes</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(() => {
+  "use strict";
+  const CATEGORIES = [
+    "Pre Clean Classroom","Pre Clean OJT","Passivation Classroom","Passivation OJT",
+    "Detailed Cleaning Classroom","Detailed Cleaning OJT","Sampling Classroom","Sampling OJT",
+    "Packaging Classroom","Packaging OJT","Documentation",
+    "Disassembly/Reassembly Classroom","Disassembly/Reassembly OJT",
+    "Hydrostatic Testing","Pneumatic Testing","Cryogenic Testing"
+  ];
+  const DB_NAME="OJT_Tracker_DB", STORE="entries";
+  let db, entries=[], selectedMonday;
+
+  const $ = id => document.getElementById(id);
+  const pad=n=>String(n).padStart(2,"0");
+  const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const parse=s=>{ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+  const mondayOf=d=>{ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=x.getDay(); x.setDate(x.getDate()+(day===0?-6:1-day)); x.setHours(0,0,0,0); return x; };
+  const sameDay=(a,b)=>key(a)===key(b);
+  const fmt=d=>d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  const fmtEntry=s=>parse(s).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      if(!("indexedDB" in window)) return reject(new Error("IndexedDB unavailable"));
+      const r=indexedDB.open(DB_NAME,1);
+      r.onupgradeneeded=e=>{ const d=e.target.result; if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:"id",autoIncrement:true}); };
+      r.onsuccess=()=>{ db=r.result; resolve(); };
+      r.onerror=()=>reject(r.error);
+    });
+  }
+  function getAll(){ return new Promise((res,rej)=>{ const r=db.transaction(STORE).objectStore(STORE).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error); }); }
+  function add(rec){ return new Promise((res,rej)=>{ const r=db.transaction(STORE,"readwrite").objectStore(STORE).add(rec); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+  function put(rec){ return new Promise((res,rej)=>{ const r=db.transaction(STORE,"readwrite").objectStore(STORE).put(rec); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
+  function del(id){ return new Promise((res,rej)=>{ const r=db.transaction(STORE,"readwrite").objectStore(STORE).delete(id); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
+  function clearStore(){ return new Promise((res,rej)=>{ const r=db.transaction(STORE,"readwrite").objectStore(STORE).clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error); }); }
+
+  function updateNet(){
+    $("netText").textContent = navigator.onLine ? "Online — offline mode ready" : "Offline — app still works";
+  }
+  window.addEventListener("online",updateNet); window.addEventListener("offline",updateNet); updateNet();
+
+  function weekData(monday){
+    const next=new Date(monday); next.setDate(next.getDate()+7);
+    const rows=CATEGORIES.map(cat=>{
+      const vals=[0,0,0,0,0,0,0];
+      entries.forEach(e=>{
+        if(e.category!==cat) return;
+        const d=parse(e.date); if(d<monday||d>=next) return;
+        vals[d.getDay()===0?6:d.getDay()-1]+=Number(e.hours)||0;
+      });
+      return {cat, vals, total:vals.reduce((a,b)=>a+b,0)};
+    }).filter(r=>r.total>0);
+    return rows;
+  }
+
+  function render(){
+    const today=new Date(), todayKey=key(today), thisMon=mondayOf(today), nextMon=new Date(thisMon); nextMon.setDate(nextMon.getDate()+7);
+    let t=0,w=0,a=0;
+    entries.forEach(e=>{ const h=Number(e.hours)||0; a+=h; if(e.date===todayKey)t+=h; const d=parse(e.date); if(d>=thisMon&&d<nextMon)w+=h; });
+    $("todayTotal").textContent=t.toFixed(1)+" hrs";
+    $("weekTotal").textContent=w.toFixed(1)+" hrs";
+    $("allTotal").textContent=a.toFixed(1)+" hrs";
+
+    const holder=$("entries"); holder.innerHTML="";
+    const recent=[...entries].sort((x,y)=>y.date.localeCompare(x.date)||y.id-x.id).slice(0,25);
+    if(!recent.length) holder.innerHTML='<div class="empty">No entries yet.</div>';
+    recent.forEach(e=>{
+      const div=document.createElement("div"); div.className="entry";
+      div.innerHTML=`<div><div class="entry-title">${esc(e.category)}</div><div class="entry-meta">${esc(fmtEntry(e.date))} · ${Number(e.hours).toFixed(1)} hrs</div></div>`;
+      const actions=document.createElement("div"); actions.className="entry-actions";
+      const edit=document.createElement("button"); edit.type="button"; edit.className="tiny"; edit.textContent="Edit";
+      edit.addEventListener("click",()=>openEdit(e.id));
+      const remove=document.createElement("button"); remove.type="button"; remove.className="tiny danger"; remove.textContent="Delete";
+      remove.addEventListener("click",async()=>{ if(!confirm("Delete this entry?"))return; await del(e.id); entries=entries.filter(x=>x.id!==e.id); render(); });
+      actions.append(edit,remove); div.append(actions); holder.append(div);
+    });
+
+    const end=new Date(selectedMonday); end.setDate(end.getDate()+6);
+    $("weekLabel").textContent=`${fmt(selectedMonday)} – ${fmt(end)}`;
+    const rows=weekData(selectedMonday), body=$("summaryBody"), foot=$("summaryFoot");
+    body.innerHTML=""; foot.innerHTML="";
+    const daily=[0,0,0,0,0,0,0]; let grand=0;
+    if(!rows.length) body.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted)">No hours logged for this week.</td></tr>';
+    rows.forEach(r=>{
+      r.vals.forEach((v,i)=>daily[i]+=v); grand+=r.total;
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${esc(r.cat)}</td>${r.vals.map(v=>`<td>${v?v.toFixed(1):""}</td>`).join("")}<td><strong>${r.total.toFixed(1)}</strong></td>`;
+      body.append(tr);
+    });
+    if(grand){
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>Daily total</td>${daily.map(v=>`<td>${v?v.toFixed(1):""}</td>`).join("")}<td>${grand.toFixed(1)}</td>`;
+      foot.append(tr);
+    }
+  }
+
+  $("entryForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const date=$("date").value, category=$("category").value, hours=Number($("hours").value);
+    if(!date||!category||!Number.isFinite(hours)||hours<=0||hours>24){ $("formMsg").textContent="Enter a valid date, category, and hours."; return; }
+    const rec={date,category,hours,createdAt:Date.now()};
+    try{
+      rec.id=await add(rec); entries.push(rec); $("hours").value=""; $("formMsg").textContent=`Saved ${hours.toFixed(1)} hrs to ${category}.`; render();
+    }catch{ $("formMsg").textContent="Could not save the entry."; }
+  });
+
+  function openEdit(id){
+    const e=entries.find(x=>x.id===id); if(!e)return;
+    $("editId").value=e.id; $("editDate").value=e.date; $("editCategory").value=e.category; $("editHours").value=e.hours;
+    $("editDialog").showModal();
+  }
+  $("editForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const id=Number($("editId").value), rec=entries.find(x=>x.id===id); if(!rec)return;
+    const hours=Number($("editHours").value);
+    if(!$("editDate").value||!$("editCategory").value||!Number.isFinite(hours)||hours<=0||hours>24)return;
+    rec.date=$("editDate").value; rec.category=$("editCategory").value; rec.hours=hours; rec.updatedAt=Date.now();
+    await put(rec); $("editDialog").close(); render();
+  });
+
+  $("prevWeek").addEventListener("click",()=>{ selectedMonday.setDate(selectedMonday.getDate()-7); render(); });
+  $("nextWeek").addEventListener("click",()=>{ selectedMonday.setDate(selectedMonday.getDate()+7); render(); });
+  $("thisWeek").addEventListener("click",()=>{ selectedMonday=mondayOf(new Date()); render(); });
+  $("printWeek").addEventListener("click",()=>window.print());
+
+  function download(name,text,type){
+    const blob=new Blob([text],{type}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  $("exportBackup").addEventListener("click",()=>{
+    download(`ojt-backup-${key(new Date())}.json`,JSON.stringify({app:"OJT Hours Tracker",version:1,exportedAt:new Date().toISOString(),entries},null,2),"application/json");
+  });
+  $("importBackup").addEventListener("click",()=>$("importFile").click());
+  $("importFile").addEventListener("change",async e=>{
+    const f=e.target.files[0]; if(!f)return;
+    try{
+      const data=JSON.parse(await f.text()); if(!data||!Array.isArray(data.entries)) throw new Error();
+      if(!confirm(`Import ${data.entries.length} entries? This will replace the current data on this device.`)) return;
+      await clearStore(); entries=[];
+      for(const x of data.entries){
+        if(!x.date||!CATEGORIES.includes(x.category)||!Number.isFinite(Number(x.hours))) continue;
+        const rec={date:x.date,category:x.category,hours:Number(x.hours),createdAt:x.createdAt||Date.now()};
+        rec.id=await add(rec); entries.push(rec);
+      }
+      $("saveStatus").textContent=`Imported ${entries.length} entries successfully.`; render();
+    }catch{ alert("That file is not a valid OJT Tracker backup."); }
+    e.target.value="";
+  });
+
+  $("exportCsv").addEventListener("click",()=>{
+    const rows=weekData(selectedMonday); const end=new Date(selectedMonday); end.setDate(end.getDate()+6);
+    const lines=[["Category","Mon","Tue","Wed","Thu","Fri","Sat","Sun","Total"]];
+    rows.forEach(r=>lines.push([r.cat,...r.vals.map(v=>v?v.toFixed(1):""),r.total.toFixed(1)]));
+    const csv=lines.map(row=>row.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    download(`ojt-week-${key(selectedMonday)}-to-${key(end)}.csv`,csv,"text/csv");
+  });
+
+  $("clearAll").addEventListener("click",async()=>{
+    if(!confirm("Delete ALL saved OJT data on this device? This cannot be undone unless you have a backup.")) return;
+    await clearStore(); entries=[]; $("saveStatus").textContent="All data cleared."; render();
+  });
+
+  CATEGORIES.forEach(c=>{ const o=document.createElement("option"); o.textContent=c; $("editCategory").append(o); });
+
+  const today=new Date(); $("date").value=key(today); selectedMonday=mondayOf(today);
+
+  openDB().then(getAll).then(list=>{ entries=list.map(x=>({...x,hours:Number(x.hours)||0})); $("saveStatus").textContent=`${entries.length} saved ${entries.length===1?"entry":"entries"} loaded.`; render(); })
+    .catch(()=>{ $("saveStatus").textContent="On-device database is unavailable in this browser."; render(); });
+
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>

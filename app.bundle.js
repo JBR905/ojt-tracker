@@ -19,7 +19,7 @@ const $=s=>document.querySelector(s), pad=n=>String(n).padStart(2,'0');
 const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const parse=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 const monday=d=>{d=new Date(d);const n=d.getDay();d.setDate(d.getDate()+(n===0?-6:1-n));d.setHours(0,0,0,0);return d};
-const fmt=n=>n?Number(n).toFixed(1):'';
+const fmt=n=>{const v=Number(n);return v?(Number.isInteger(v)?String(v):v.toFixed(1)):''};
 let entries=[], selected=monday(new Date()), pendingPdf=false;
 $('#date').value=key(new Date()); $('#category').innerHTML='<option value="">Choose category</option>'+CATS.map(x=>`<option>${x}</option>`).join('');
 function dbOpen(){return new Promise((ok,no)=>{const q=indexedDB.open('LTA_OJT_Tracker',2);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('entries'))q.result.createObjectStore('entries',{keyPath:'id',autoIncrement:true})};q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})}

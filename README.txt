@@ -1,6 +1,6 @@
-LTA OJT TRACKER - VERSION 8 DATE-COLUMN UPDATE
+LTA OJT TRACKER - VERSION 9 HOUR-FORMAT UPDATE
 
-Replace only app.bundle.js and sw.js in the repository root. Generated forms now fill the blank date column beside Monday-Sunday with each date in MM-DD-YYYY format. The corrected total-row alignment is retained.
+Replace only app.bundle.js and sw.js in the repository root. Whole-number hours now print without a trailing decimal (2 instead of 2.0). Genuine partial hours such as 2.5 remain unchanged. Date-column and total-row corrections are retained.
 
 GitHub Pages will update in a few minutes. Open the installed app while online once so it downloads the update. If the old version remains, close it, revisit the GitHub Pages URL in Safari, refresh, then reopen the home-screen app.
 

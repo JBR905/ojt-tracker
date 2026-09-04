@@ -1,6 +1,6 @@
-LTA OJT TRACKER - VERSION 7 TOTAL-ROW ALIGNMENT UPDATE
+LTA OJT TRACKER - VERSION 8 DATE-COLUMN UPDATE
 
-Replace only app.bundle.js and sw.js in the repository root. This update raises the category-total numbers slightly so they are vertically centered and clear of the bottom grid line.
+Replace only app.bundle.js and sw.js in the repository root. Generated forms now fill the blank date column beside Monday-Sunday with each date in MM-DD-YYYY format. The corrected total-row alignment is retained.
 
 GitHub Pages will update in a few minutes. Open the installed app while online once so it downloads the update. If the old version remains, close it, revisit the GitHub Pages URL in Safari, refresh, then reopen the home-screen app.
 

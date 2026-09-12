@@ -36,10 +36,9 @@ async function createOjtPdf(template, { monday, name = '', blank = false, matrix
     center(dateText(date),117,ys[di],7);
     const label = !blank && dayStatuses[dateKey(date)];
     if (label) {
-      const width = bold.widthOfTextAtSize(label,10);
-      // Keep the row grid intact except for a small backing behind the label.
-      page.drawRectangle({x:430-width/2-4,y:ys[di]-2,width:width+8,height:13,color:rgb(1,1,1)});
-      center(label,430,ys[di],10,bold);
+      // First category cell is 34 points wide; fit long reasons inside it.
+      const size = Math.min(8,30 / bold.widthOfTextAtSize(label,1));
+      center(label,xs[0],ys[di]+(8-size)/2,size,bold);
     }
   }
   if (!blank) {

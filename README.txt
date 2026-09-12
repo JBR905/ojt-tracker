@@ -1,6 +1,6 @@
-LTA OJT TRACKER - VERSION 10 LEAVE AND BLANK-FORM UPDATE
+LTA OJT TRACKER - VERSION 11 LEAVE-COLUMN UPDATE
 
-Replace index.html, app.bundle.js, and sw.js in the repository root. Keep all other existing repository files.
+Replace only app.bundle.js and sw.js in the repository root. Keep all other existing repository files. Leave wording now prints inside the first category column immediately to the right of the dates; longer wording is sized to fit.
 
 Day off / leave: select a date and Holiday, PTO, or Bereavement, then save. The reason prints on the corresponding daily row and adds no OJT hours. Delete a label in Recent entries to change it. Full-day leave labels cannot coexist with training hours on the same date.
 
